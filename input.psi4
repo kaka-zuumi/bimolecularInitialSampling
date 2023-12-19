@@ -1,0 +1,6 @@
+referencemethod uhf
+     psi4method mp2/6-311G**
+    freeze_core 1
+     df_ints_io save
+         charge 1
+   multiplicity 2
