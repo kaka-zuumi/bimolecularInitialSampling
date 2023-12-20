@@ -29,6 +29,6 @@ python -u ../cli.py ../examples/input.hbr.ch4.xyz ../examples/input.psi4 . --ato
 
 ```
 mkdir test3/; cd test3/
-python -u ../cli.py ../examples/input.h2br.ch3.xyz ../examples/input.psi4 . --atomsInFirstGroup "1 2 3" --collisionEnergy 5.0 --impactParameter 1.0 --centerOfMassDistance 10.0 --prduction 1000 --interval 1 --time_step 0.15 --INITQPa "thermal" --INITQPb "thermal" --TVIBa 298.15 --TROTa 298.15 --TVIBb 298.15 --TROTb 298.15 > asepsi4md0.out
+python -u ../cli.py ../examples/input.h2br.ch3.xyz ../examples/input.psi4 . --atomsInFirstGroup "1 2 3" --collisionEnergy 5.0 --impactParameter 1.0 --centerOfMassDistance 10.0 --production 1000 --interval 1 --time_step 0.15 --INITQPa "thermal" --INITQPb "thermal" --TVIBa 298.15 --TROTa 298.15 --TVIBb 298.15 --TROTb 298.15 > asepsi4md0.out
 ```
 
