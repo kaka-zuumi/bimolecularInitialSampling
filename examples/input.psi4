@@ -4,3 +4,4 @@ referencemethod uhf
      df_ints_io save
          charge 1
    multiplicity 2
+       mulliken 1
