@@ -1,10 +1,19 @@
 
 ## Installing the package
 
+Download the git repository and enter the folder.
+```                                                                                                                                                                      
+git clone https://github.com/kaka-zuumi/bimolecularInitialSampling.git                                                               
+cd bimolecularInitialSampling
+```
+
 The initial sampling package makes use of energy and force calls from an ASE `atoms` object with an attached `calculator`. The same calculator can then be used to do molecular dynamics with. The calculator can either be an analytical functional (e.g. some ML potential) or an _ab initio_ electronic structure calculation. The examples here make use of the `psi4` python package for the latter case.
 
-For the ASE/psi4 interface, we suggest creating a conda environment with the two packages like so:
-
+For the ASE/psi4 interface, we suggest creating a conda environment with the two packages and activating it like so:
+```
+conda create -n bisamplepsi4ase psi4 ase                                                               
+conda activate bisamplepsi4ase                                                                                   
+```
 
 
 ## Try it out yourself!
