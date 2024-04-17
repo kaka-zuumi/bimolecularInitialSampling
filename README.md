@@ -22,7 +22,7 @@ source .bisampleqcenginegamess/bin/activate
 pip install qcengine qcelemental networkx ase
 ```
 
-For the NWChemEx interface, there is quite a lot of work involved in building the package... After finding the location of appropriate packages and modules, the script "examples/SLURM/build_nwx.slurm" and toolchain file "examples/SLURM/toolchain.cmake" can be changed, and then (with both in a fresh directory) the build_nwx.slurm script can be executed/submitted to do the build. Depending on the number of processes, it may take anywhere from 1-6 hours. This assumes NWChem is already installed.
+For the NWChemEx interface, there is quite a lot of work involved in building the package... After finding the location of appropriate packages and modules, the script "examples/SLURM/build_nwx.slurm" and toolchain file "examples/SLURM/toolchain.cmake" can be changed, and then (with both in a fresh directory) the build_nwx.slurm script can be executed/submitted to do the build. Depending on the number of processes, it may take anywhere from 1-6 hours. This assumes NWChem is already installed. A more detailed install guide is in: https://nwchemex.github.io/NWChemEx/installation/building.html
 
 
 ## Try it out yourself!
