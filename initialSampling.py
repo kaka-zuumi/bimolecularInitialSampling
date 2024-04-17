@@ -31,7 +31,7 @@ class initialSampling:
 
     # If "debug" is true, then more information
     # is printed out during the sampling
-    debug=False
+    debug=True
 
     def __init__(self,mol,atomsInFirstGroup,optimize=False,optimization_file="optimization.traj",
                       samplingMethodA="thermal",vibrationalSampleA=298,rotationalSampleA=298,
@@ -897,7 +897,7 @@ class initialSampling:
     
             # Optimize the two molecules with ASE
             optimizer = QuasiNewton(
-                self.mol,maxstep=0.010,
+                self.mol,maxstep=0.0250,    # original value = 0.010,
                 trajectory=self.optimization_file,
             )
 

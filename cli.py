@@ -9,8 +9,31 @@ import argparse
 import numpy as np
 import os
 
-from psi4calc import psi4calculator
 from initialSampling import initialSampling
+
+# Try importing psi4
+try:
+  from psi4calc import psi4calculator
+except ImportError:
+  print("WARNING: psi4 has not been loaded ... it will not be available for initial sampling")
+
+# Try importing NWChemEx
+try:
+  from nwchemexcalc import nwchemexcalculator
+except ImportError:
+  print("WARNING: NWChemEx has not been loaded ... it will not be available for initial sampling")
+
+# Try importing QCEngine/GAMESS
+try:
+  from qcengineGAMESScalc import qcengineGAMESScalculator
+except ImportError:
+  print("WARNING: QCEngine/GAMESS has not been loaded ... it will not be available for initial sampling")
+
+# Try importing sGDML
+try:
+  from sgdml.intf.ase_calc import SGDMLCalculator
+except ImportError:
+  print("WARNING: sGDML has not been loaded ... it will not be available for initial sampling")
 
 ###################################################
 
@@ -26,7 +49,7 @@ global r2threshold
 
 parser = argparse.ArgumentParser(description="Do a single MD trajectory using a initial geometry (and momenta) and a sGDML model",formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument("initialGeometryFile", type=str, help="XYZ file with initial geometry; if initial conditions are sampled in the script, then this argument is required but is just an example XYZ")
-parser.add_argument("psi4inputFile", type=str, help="psi4 input file")
+parser.add_argument("PESinputFile", type=str, help="PES input file (may be a psi4 input file or a sGDML .npz model)")
 parser.add_argument("outputDir", type=str, help="Directory to output stuff in")
 parser.add_argument("--isotopeMassesFile", type=str, help="Change masses of specific atoms e.g. like isotopic substitution", default=None)
 parser.add_argument("--initialMomentaFile", type=str, help="XYZ file with initial momenta")
@@ -40,23 +63,32 @@ parser.add_argument("--time_step", type=float, help="The time step in fs for a p
 parser.add_argument("--n_threads", type=int, help="The number of threads to ask psi4 to use")
 
 parser.add_argument("--INITQPa", type=str, help="Initial sampling method for atoms in first group ('semiclassical', 'thermal', or None)", default=None)
-parser.add_argument("--NVIBa", type=int, help="Vibrational quantum number of atoms in first group (supply if using the 'QM' initial sampling)")
-parser.add_argument("--NROTa", type=int, help="Rotational quantum number of atoms in first group (supply if using the 'QM' initial sampling)")
+parser.add_argument("--NVIBa", type=int, help="Vibrational quantum number of atoms in first group (supply if using the 'semiclassical' initial sampling)")
+parser.add_argument("--NROTa", type=int, help="Rotational quantum number of atoms in first group (supply if using the 'semiclassical' initial sampling)")
 parser.add_argument("--TVIBa", type=float, help="Vibrational temperature of atoms in first group (supply if using the 'thermal' initial sampling)")
 parser.add_argument("--TROTa", type=float, help="Rotational temperature of atoms in first group (supply if using the 'thermal' initial sampling)")
 
 parser.add_argument("--INITQPb", type=str, help="Initial sampling method for atoms in second group ('semiclassical', 'thermal', or None)", default=None)
-parser.add_argument("--NVIBb", type=int, help="Vibrational quantum number of atoms in second group (supply if using the 'QM' initial sampling)")
-parser.add_argument("--NROTb", type=int, help="Rotational quantum number of atoms in second group (supply if using the 'QM' initial sampling)")
+parser.add_argument("--NVIBb", type=int, help="Vibrational quantum number of atoms in second group (supply if using the 'semiclassical' initial sampling)")
+parser.add_argument("--NROTb", type=int, help="Rotational quantum number of atoms in second group (supply if using the 'semiclassical' initial sampling)")
 parser.add_argument("--TVIBb", type=float, help="Vibrational temperature of atoms in second group (supply if using the 'thermal' initial sampling)")
 parser.add_argument("--TROTb", type=float, help="Rotational temperature of atoms in second group (supply if using the 'thermal' initial sampling)")
 args = vars(parser.parse_args())
 
 ########################################################################################
 
+# A function to print the potential, kinetic and total energy
+def printenergy(a):
+    epot = a.get_potential_energy() / (units.kcal/units.mol)
+    ekin = a.get_kinetic_energy() / (units.kcal/units.mol)
+    print('@Epot = %.3f  Ekin = %.3f (T=%3.0fK)  '
+          'Etot = %.3f  kcal/mol' % (epot, ekin, ekin / (len(a) * 1.5 * 8.617281e-5), epot + ekin))
+
+########################################################################################
+
 # Get the various arguments
 Qfile = args["initialGeometryFile"]
-input_path = args["psi4inputFile"]
+input_path = args["PESinputFile"]
 output_path = args["outputDir"]
 
 Pfile = args["initialMomentaFile"]
@@ -69,6 +101,9 @@ isotopeMassesFile = args["isotopeMassesFile"]
 Nsteps = args["production"]
 Nprint = args["interval"]
 dt = args["time_step"]
+
+if ((Nsteps is None) or (Nprint is None) or (dt is None)):
+  raise ValueError("For MD, need to specify these three: --production --interval --time_step")
 
 n_threads = args["n_threads"]
 if (n_threads is None): n_threads = 1
@@ -95,21 +130,67 @@ else:
 
 # Adjust the maximum interatomic distance allowed
 # for the simulation
-r2threshold = 900.0
+r2threshold = 24.0*24.0
 if ((b is not None) and (dCM is not None) and (1.2*(b**2 + dCM**2) > r2threshold)):
   r2threshold = 1.2*(b**2 + dCM**2)
 
 ########################################################################################
 
-# Get the model ready
-calc = psi4calculator(input_path,n_threads=n_threads)
+# Look at the input file name to guess its identity
+try_psi4 = False
+try_nwchemex = False
+try_qcenginegamess = False
+if (input_path.endswith(('.npz',))):
 
-# To conform to VENUS, we are going to keep the units
-# in kcal/mol and Angstroms (which the model was
-# originally trained on)
-calc.E_to_eV = units.Ha
-calc.Ang_to_R = units.Ang
-calc.F_to_eV_Ang = (units.Ha / units.Bohr)
+  print("Input file '"+input_path+"' looks like a sGDML file so will attempt to read it in as such...")
+  try:
+    calc = SGDMLCalculator(input_path)
+    try_psi4 = False
+  except:
+    print("   Could not load file '"+input_path+"' as a sGDML model!")
+    try_psi4 = True
+
+elif (input_path.endswith(('.psi4',))):
+  try_psi4 = True
+
+elif (input_path.endswith(('.gamess.qcengine',))):
+  try_qcenginegamess = True
+
+else:
+  try_nwchemex = True
+
+if (try_psi4):
+  print("Reading input file '"+input_path+"' as a psi4 input file...")
+  calc = psi4calculator(input_path,n_threads=n_threads)
+
+  # To conform to VENUS, we are going to keep the units
+  # in kcal/mol and Angstroms (which the model was
+  # originally trained on)
+  calc.E_to_eV = units.Ha
+  calc.Ang_to_R = units.Ang
+  calc.F_to_eV_Ang = (units.Ha / units.Bohr)
+
+if (try_qcenginegamess):
+  print("Reading input file '"+input_path+"' as a QCEngine/GAMESS input file...")
+  calc = qcengineGAMESScalculator(input_path,n_threads=n_threads)
+
+  # To conform to VENUS, we are going to keep the units
+  # in kcal/mol and Angstroms (which the model was
+  # originally trained on)
+  calc.E_to_eV = units.Ha
+  calc.Ang_to_R = (units.Ang / units.Bohr)
+  calc.F_to_eV_Ang = (units.Ha / units.Bohr)
+
+if (try_nwchemex):
+  print("Reading input file '"+input_path+"' as a NWChemEx input file...")
+  calc = nwchemexcalculator(input_path,n_threads=n_threads)
+
+  # To conform to VENUS, we are going to keep the units
+  # in kcal/mol and Angstroms (which the model was
+  # originally trained on)
+  calc.E_to_eV = units.Ha
+  calc.Ang_to_R = (units.Ang / units.Bohr)
+  calc.F_to_eV_Ang = (units.Ha / units.Bohr)
 
 # Read in the geometry; set it in the "calculator"
 mol = read(Qfile)
@@ -192,16 +273,8 @@ else:
 
 ########################################################################################
 
-
 # Run MD with constant energy using the velocity verlet algorithm
 dyn = VelocityVerlet(mol, dt * units.fs, trajectory=trajfile) 
-
-# A function to print the potential, kinetic and total energy
-def printenergy(a):
-    epot = a.get_potential_energy() / (units.kcal/units.mol)
-    ekin = a.get_kinetic_energy() / (units.kcal/units.mol)
-    print('@Epot = %.3f  Ekin = %.3f (T=%3.0fK)  '
-          'Etot = %.3f  kcal/mol' % (epot, ekin, ekin / (len(a) * 1.5 * 8.617281e-5), epot + ekin))
 
 # A function to see if any interatomic distance is > 20 
 def checkGeneralReactionProgress(a):

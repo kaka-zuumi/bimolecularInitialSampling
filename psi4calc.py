@@ -53,6 +53,8 @@ class psi4calculator(Calculator):
         self.referencemethod = 'uhf'
         self.freeze_core = 0
         self.df_ints_io = "None"
+        self.dft_spherical_points = 302   # The default for DFT jobs
+        self.dft_radial_points = 75       # The default for DFT jobs
         self.psi4method = 'b3lyp/6-31g*'  # LevelOfTheory/BasisSet with no spaces
         self.mulliken = 0
         self.charge = 0
@@ -71,6 +73,8 @@ class psi4calculator(Calculator):
                 if (entries[0] == "referencemethod"): self.referencemethod = str(entries[1])
                 if (entries[0] == "freeze_core"): self.freeze_core = int(entries[1])
                 if (entries[0] == "df_ints_io"): self.df_ints_io = str(entries[1])
+                if (entries[0] == "dft_spherical_points"): self.dft_spherical_points = int(entries[1])
+                if (entries[0] == "dft_radial_points"): self.dft_radial_points = int(entries[1])
                 if (entries[0] == "psi4method"): self.psi4method = str(entries[1])
                 if (entries[0] == "mulliken"): self.mulliken = int(entries[1])
                 if (entries[0] == "charge"): self.charge = int(entries[1])
@@ -84,6 +88,11 @@ class psi4calculator(Calculator):
         psi4.set_options({'e_convergence': self.e_convergence})
         psi4.set_options({'reference': self.referencemethod})
         psi4.set_options({'freeze_core': self.freeze_core})
+        psi4.set_options({'df_ints_io': self.df_ints_io})
+        psi4.set_options({'dft_spherical_points': self.dft_spherical_points})
+#       psi4.set_options({'DFT_SPHERICAL_POINTS': self.dft_spherical_points})
+        psi4.set_options({'dft_radial_points': self.dft_radial_points})
+#       psi4.set_options({'DFT_RADIAL_POINTS': self.dft_radial_points})
         psi4.set_options({'df_ints_io': self.df_ints_io})
         self.movecs = self.scratchdir+"/md.wfn"
         self.ref_wfn = None
@@ -122,6 +131,7 @@ class psi4calculator(Calculator):
         #    (2) Try the default superposition of atomic densities (SAD)
         tmp_d_convergence = self.d_convergence
         tmp_e_convergence = self.e_convergence
+        self.ref_wfn = None   # Kazuumi SUPER temporary line to test no initial guess wfn
         for i in range(100):
             if (self.ref_wfn is None):
                 try:
