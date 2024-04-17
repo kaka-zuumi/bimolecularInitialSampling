@@ -1,0 +1,5 @@
+referencemethod uhf
+         method b3lyp
+      basis_set DZV
+         charge 0
+   multiplicity 2
