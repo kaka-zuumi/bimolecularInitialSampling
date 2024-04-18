@@ -7,7 +7,7 @@ from ase.units import Ha, Ang, Bohr
 import simde
 import pluginplay
 from nwchemex import compute_energy, load_modules
-from chemist import Atom, Molecule, ChemicalSystem
+from chemist import Atom, Molecule, ChemicalSystem, PointSetD
 from chemist.basis_set import AtomicBasisSetD
 
 from friendzone.nwx2qcengine.call_qcengine import call_qcengine
@@ -203,7 +203,7 @@ class nwchemexcalculator(Calculator):
             self.keywords["dft; vectors "] = " input "+self.movecsDFT+" output "+self.movecsDFT+"; end"     # Where to save the MOvecs
             self.mm.change_input(self.method + " Gradient", 'keywords', self.keywords)
 
-            f = self.mm.run_as(simde.provisional.EnergyNuclearGradientD(), self.method + " Gradient", chemist_sys)
+            f = self.mm.run_as(simde.EnergyNuclearGradientStdVectorD(), self.method + " Gradient", chemist_sys, PointSetD())
 #           f = -np.array(f).reshape(-1,3)
             f = np.array(f).reshape(-1,3)
 
