@@ -33,21 +33,21 @@ To do an example initial sampling with molecular dynamics using a psi4 potential
 
 ```
 mkdir test1/; cd test1/
-python -u ../cli.py ../examples/input.br.ch5.xyz ../examples/input.psi4 . --atomsInFirstGroup "1" --collisionEnergy 5.0 --impactParameter 1.0 --centerOfMassDistance 10.0 --production 1000 --interval 1 --time_step 0.15 --INITQPa "thermal" --INITQPb "thermal" --TVIBa 298.15 --TROTa 298.15 --TVIBb 298.15 --TROTb 298.15 > asepsi4md0.out
+python -u ../cli.py ../examples/input.br.ch5.xyz ../examples/input.BrCH5.psi4 . --atomsInFirstGroup "1" --collisionEnergy 5.0 --impactParameter 1.0 --centerOfMassDistance 10.0 --production 1000 --interval 1 --time_step 0.15 --INITQPa "thermal" --INITQPb "thermal" --TVIBa 298.15 --TROTa 298.15 --TVIBb 298.15 --TROTb 298.15 > asepsi4md0.out
 ```
 
 ###  HBr<sup>+</sup> + CH<sub>4</sub>  ⟶
 
 ```
 mkdir test2/; cd test2/
-python -u ../cli.py ../examples/input.hbr.ch4.xyz ../examples/input.psi4 . --atomsInFirstGroup "1 2" --collisionEnergy 5.0 --impactParameter 1.0 --centerOfMassDistance 10.0 --production 1000 --interval 1 --time_step 0.15 --INITQPa "semiclassical" --INITQPb "thermal" --NVIBa 0 --NROTa 3 --TVIBb 298.15 --TROTb 298.15 > asepsi4md0.out
+python -u ../cli.py ../examples/input.hbr.ch4.xyz ../examples/input.BrCH5.psi4 . --atomsInFirstGroup "1 2" --collisionEnergy 5.0 --impactParameter 1.0 --centerOfMassDistance 10.0 --production 1000 --interval 1 --time_step 0.15 --INITQPa "semiclassical" --INITQPb "thermal" --NVIBa 0 --NROTa 3 --TVIBb 298.15 --TROTb 298.15 > asepsi4md0.out
 ```
 
 ###  H<sub>2</sub>Br<sup>+</sup> + CH<sub>3</sub>  ⟶
 
 ```
 mkdir test3/; cd test3/
-python -u ../cli.py ../examples/input.h2br.ch3.xyz ../examples/input.psi4 . --atomsInFirstGroup "1 2 4" --collisionEnergy 5.0 --impactParameter 1.0 --centerOfMassDistance 10.0 --production 1000 --interval 1 --time_step 0.15 --INITQPa "thermal" --INITQPb "thermal" --TVIBa 298.15 --TROTa 298.15 --TVIBb 298.15 --TROTb 298.15 > asepsi4md0.out
+python -u ../cli.py ../examples/input.h2br.ch3.xyz ../examples/input.BrCH5.psi4 . --atomsInFirstGroup "1 2 4" --collisionEnergy 5.0 --impactParameter 1.0 --centerOfMassDistance 10.0 --production 1000 --interval 1 --time_step 0.15 --INITQPa "thermal" --INITQPb "thermal" --TVIBa 298.15 --TROTa 298.15 --TVIBb 298.15 --TROTb 298.15 > asepsi4md0.out
 ```
 
 
