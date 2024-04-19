@@ -24,8 +24,6 @@ if [ "$#" -ne "1" ]; then
 fi
 
 
-
-
 unset SLURM_CPU_BIND_VERBOSE SLURM_CPU_BIND_LIST SLURM_CPU_BIND_TYPE SLURM_CPU_BIND
 ulimit -s unlimited
 source ~/.bash_profile
@@ -40,15 +38,14 @@ module load devel/CMake/3.24.3-GCCcore-11.3.0
 
 source /mnt/lustre/koa/koastore/rsun_group/kazuumiTest1/MLexp1/MLMD-cli/.nwchemexASEvenv/bin/activate
 
-#moduleDIR=/mnt/lustre/koa/koastore/rsun_group/kazuumiTest1/nwchemexTEST1/nwchemex_gcc_gccNWC_automated_try1
-moduleDIR=/mnt/lustre/koa/koastore/rsun_group/kazuumiTest1/nwchemexTEST1/nwchemex_gcc_gccNWC_automated_try7
+nwchemexDIR=/mnt/lustre/koa/koastore/rsun_group/kazuumiTest1/nwchemexTEST1/nwchemex_gcc_gccNWC_automated_try7
 
-export PYTHONPATH="$PYTHONPATH:$moduleDIR/NWChemEx-modules"
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$moduleDIR/NWChemEx-install/lib64"
+export PYTHONPATH="$PYTHONPATH:$nwchemexDIR/NWChemEx-modules"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$nwchemexDIR/NWChemEx-install/lib64"
 while read dir; do
   echo "Adding $dir to LD_LIBRARY_PATH..."
   export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$dir"
-done < <(ls -d $moduleDIR/NWChemEx-install/lib64/*/ | sed 's|/$||')
+done < <(ls -d $nwchemexDIR/NWChemEx-install/lib64/*/ | sed 's|/$||')
 
 # NWChem paths:
 export NWCHEM_TOP="/mnt/lustre/koa/koastore/rsun_group/kazuumiTest1/nwchemGCCtest1/nwchem-ivybridge-try1/nwchem"
@@ -77,8 +74,8 @@ let "Ntasks = ${SLURM_NTASKS} - 1"
 
 #############################################################
 
-xyzfile=/mnt/lustre/koa/koastore/rsun_group/kazuumiTest1/MLexp1/MLMD-cli/tmp.A.xyz
-PESfile=/mnt/lustre/koa/koastore/rsun_group/kazuumiTest1/MLexp1/MLMD-cli/tmp.A.nwchemex
+xyzfile=../../examples/input.ho.ch2.xyz
+PESfile=../../examples/input.CH3O.nwchemex
 
 echo "START: "$(date)
 
@@ -90,12 +87,8 @@ dt=0.15
 maxSteps=100000
 
 # Start the MD by doing some initial sampling
-#srun --overlap --mpi=pmix -n $Ntasks python -u /home/kazuumi/rsun_koastore/kazuumiTest1/MLexp1/MLMD-cli/cli.py $xyzfile $PESfile . --atomsInFirstGroup "1 2" --collisionEnergy $CE --impactParameter $b --centerOfMassDistance $rCM --production $maxSteps --interval 1 --time_step $dt --INITQPa "semiclassical" --INITQPb "thermal" --NVIBa 0 --NROTa 0 --TVIBb 10.0 --TROTb 10.0 --n_threads $Ntasks > production.log
-srun --overlap --mpi=pmix -n $Ntasks python -u /home/kazuumi/rsun_koastore/kazuumiTest1/MLexp1/MLMD-cli/cli.py $xyzfile $PESfile . --atomsInFirstGroup "1 2" --collisionEnergy $CE --impactParameter $b --centerOfMassDistance $rCM --production $maxSteps --interval 1 --time_step $dt --INITQPa "thermal" --INITQPb "thermal" --TVIBa 298.15 --TROTa 298.15 --TVIBb 298.15 --TROTb 298.15 --n_threads $Ntasks > production.log
+#srun --overlap --mpi=pmix -n 1 python -u ../../cli.py $xyzfile $PESfile . --atomsInFirstGroup "1 2" --collisionEnergy $CE --impactParameter $b --centerOfMassDistance $rCM --production $maxSteps --interval 1 --time_step $dt --INITQPa "semiclassical" --INITQPb "thermal" --NVIBa 0 --NROTa 0 --TVIBb 10.0 --TROTb 10.0 --n_threads $Ntasks > production.log
+srun --overlap --mpi=pmix -n 1 python -u ../..//cli.py $xyzfile $PESfile . --atomsInFirstGroup "1 2" --collisionEnergy $CE --impactParameter $b --centerOfMassDistance $rCM --production $maxSteps --interval 1 --time_step $dt --INITQPa "thermal" --INITQPb "thermal" --TVIBa 298.15 --TROTa 298.15 --TVIBb 298.15 --TROTb 298.15 --n_threads $Ntasks > production.log
 
 echo "FINISH: "$(date)
-
-python -u /mnt/lustre/koa/koastore/rsun_group/kazuumiTest1/pythonSELECTandMD/psi4traj2exyz.py ./production.traj > ./production.xyz
-
-echo "XYZ: "$(date)
 
