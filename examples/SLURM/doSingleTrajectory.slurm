@@ -36,8 +36,9 @@ n_threads=$SLURM_CPUS_PER_TASK
 # https://psicode.org/psi4manual/master/dft_byfunctional.html#table-dft-meta
 # https://psicode.org/psi4manual/master/basissets_tables.html
 
-xyzfile=/home/kazuumi/rsun_koastore/kazuumiTest1/MLexp1/MLMD-cli/input.xyz
-PESfile=/home/kazuumi/rsun_koastore/kazuumiTest1/MLexp1/globalPES/PES-ntrain14000-try1/sig15.npz
+xyzfile=../../examples/input.hbr.ch4.xyz
+PESfile=../../input.BrCH5.psi4
+#PESfile=/home/kazuumi/rsun_koastore/kazuumiTest1/MLexp1/globalPES/PES-ntrain14000-try1/sig15.npz
 
 echo "START: "$(date)
 
@@ -49,10 +50,7 @@ dt=0.25
 maxSteps=100000
 
 # Start the MD by doing some initial sampling
-python -u /home/kazuumi/rsun_koastore/kazuumiTest1/MLexp1/MLMD-cli/cli.py $xyzfile $PESfile . --atomsInFirstGroup "1 2" --collisionEnergy $CE --impactParameter $b --centerOfMassDistance $rCM --production $maxSteps --interval 1 --time_step $dt --INITQPa "semiclassical" --INITQPb "thermal" --NVIBa 0 --NROTa 0 --TVIBb 10.0 --TROTb 10.0 --n_threads $n_threads > production.log
+python -u ../../cli.py $xyzfile $PESfile . --atomsInFirstGroup "1 2" --collisionEnergy $CE --impactParameter $b --centerOfMassDistance $rCM --production $maxSteps --interval 1 --time_step $dt --INITQPa "semiclassical" --INITQPb "thermal" --NVIBa 0 --NROTa 0 --TVIBb 10.0 --TROTb 10.0 --n_threads $n_threads > production.log
 
 echo "FINISH: "$(date)
 
-python -u /home/kazuumi/rsun_koastore/kazuumiTest1/MLexp1/traj2exyz.py ./production.traj > ./production.xyz
-
-echo "XYZ: "$(date)
