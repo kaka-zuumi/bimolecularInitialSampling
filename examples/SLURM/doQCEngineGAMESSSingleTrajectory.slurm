@@ -22,8 +22,6 @@ fi
 
 
 
-
-
 unset SLURM_CPU_BIND_VERBOSE SLURM_CPU_BIND_LIST SLURM_CPU_BIND_TYPE SLURM_CPU_BIND
 ulimit -s unlimited
 source ~/.bash_profile
@@ -62,8 +60,8 @@ Ntasks=${SLURM_NTASKS}
 # GAMESS basis set documentation: https://myweb.liu.edu/~nmatsuna/gamess/input/BASIS.html
 # QCEngine/GAMESS methods documentation: https://github.com/MolSSI/QCEngine/blob/f5f6da3751373fa9b57ea484cbf71416ba679743/qcengine/programs/gamess/germinate.py
 # Note: QCEngine/GAMESS can't specify the gaussian basis sets (6-31G) easily without future modification
-xyzfile=/mnt/lustre/koa/koastore/rsun_group/kazuumiTest1/MLexp1/MLMD-cli/input.xyz
-PESfile=/mnt/lustre/koa/koastore/rsun_group/kazuumiTest1/MLexp1/MLMD-cli/input.gamess.qcengine
+xyzfile=../../examples/input.ho.ch2.xyz
+PESfile=../../examples/input.CH3O.gamess.qcengine
 
 echo "START: "$(date)
 
@@ -75,12 +73,8 @@ dt=0.15
 maxSteps=100000
 
 # Start the MD by doing some initial sampling
-#python -u /home/kazuumi/rsun_koastore/kazuumiTest1/MLexp1/MLMD-cli/cli.py $xyzfile $PESfile . --atomsInFirstGroup "1 2" --collisionEnergy $CE --impactParameter $b --centerOfMassDistance $rCM --production $maxSteps --interval 1 --time_step $dt --INITQPa "semiclassical" --INITQPb "thermal" --NVIBa 0 --NROTa 0 --TVIBb 10.0 --TROTb 10.0 --n_threads $Ntasks > production.log
-python -u /home/kazuumi/rsun_koastore/kazuumiTest1/MLexp1/MLMD-cli/cli.py $xyzfile $PESfile . --atomsInFirstGroup "1 2" --collisionEnergy $CE --impactParameter $b --centerOfMassDistance $rCM --production $maxSteps --interval 1 --time_step $dt --INITQPa "thermal" --INITQPb "thermal" --TVIBa 298.15 --TROTa 298.15 --TVIBb 298.15 --TROTb 298.15 --n_threads $Ntasks > production.log
+#python -u ../../cli.py $xyzfile $PESfile . --atomsInFirstGroup "1 2" --collisionEnergy $CE --impactParameter $b --centerOfMassDistance $rCM --production $maxSteps --interval 1 --time_step $dt --INITQPa "semiclassical" --INITQPb "thermal" --NVIBa 0 --NROTa 0 --TVIBb 10.0 --TROTb 10.0 --n_threads $Ntasks > production.log
+python -u ../../cli.py $xyzfile $PESfile . --atomsInFirstGroup "1 2" --collisionEnergy $CE --impactParameter $b --centerOfMassDistance $rCM --production $maxSteps --interval 1 --time_step $dt --INITQPa "thermal" --INITQPb "thermal" --TVIBa 298.15 --TROTa 298.15 --TVIBb 298.15 --TROTb 298.15 --n_threads $Ntasks > production.log
 
 echo "FINISH: "$(date)
-
-python -u /mnt/lustre/koa/koastore/rsun_group/kazuumiTest1/pythonSELECTandMD/psi4traj2exyz.py ./production.traj > ./production.xyz
-
-echo "XYZ: "$(date)
 
