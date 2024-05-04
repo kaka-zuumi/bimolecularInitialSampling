@@ -35,6 +35,14 @@ try:
 except ImportError:
   print("WARNING: sGDML has not been loaded ... it will not be available for initial sampling")
 
+# Try importing Schnet
+try:
+  import schnetpack as spk
+  import torch
+except ImportError:
+  print("WARNING: Schnet has not been loaded ... it will not be available for initial sampling")
+
+
 ###################################################
 
 # Define global constants up here in the correct
@@ -143,12 +151,16 @@ if ((b is not None) and (dCM is not None) and (1.2*(b**2 + dCM**2) > r2threshold
 try_psi4 = False
 try_nwchemex = False
 try_qcenginegamess = False
+try_sgdml = False
+try_schnet = False
 if (input_path.endswith(('.npz',))):
 
   print("Input file '"+input_path+"' looks like a sGDML file so will attempt to read it in as such...")
   try:
     calc = SGDMLCalculator(input_path)
-    try_psi4 = False
+    try_sgdml = True
+#   try_psi4 = False
+
   except:
     print("   Could not load file '"+input_path+"' as a sGDML model!")
     try_psi4 = True
@@ -159,8 +171,34 @@ elif (input_path.endswith(('.psi4',))):
 elif (input_path.endswith(('.gamess.qcengine',))):
   try_qcenginegamess = True
 
-else:
+elif (input_path.endswith(('.nwchemex',))):
   try_nwchemex = True
+
+else:
+  try_schnet = True
+
+  # Initialize the ML ase interface
+  schnet_model = torch.load(input_path, map_location="cpu")
+  schnet_model.requires_stress = False
+  for athing in schnet_model.output_modules:
+      athing.stress = None
+
+  # To accomodate for the older versions of numpy used in Schnet==1.0
+  np.int = np.int32
+  np.float = np.float64
+  np.bool = np.bool_
+
+  calc = spk.interfaces.SpkCalculator(
+      schnet_model,
+      device="cpu",
+      energy="energy",    # Name of energies
+      forces="forces",    # Name of forces
+      energy_units="kcal/mol",
+      forces_units="kcal/mol/A",
+      environment_provider=spk.environment.SimpleEnvironmentProvider(),
+  )
+
+
 
 if (try_psi4):
   print("Reading input file '"+input_path+"' as a psi4 input file...")
