@@ -22,8 +22,10 @@ fi
 module purge
 module load lang/Anaconda3
 
-# Load your psi4 environment (if using it)
+# Load your psi4 environment (or other package)
 # source activate psi4
+# source activate ../../.bisampleschnet
+# source activate ../../.bisamplesgdml
 
 b=$1
 
@@ -37,11 +39,12 @@ n_threads=$SLURM_CPUS_PER_TASK
 # https://psicode.org/psi4manual/master/basissets_tables.html
 
 xyzfile=../../examples/input.hbr.ch4.xyz
-PESfile=../../examples/input.br.ch5.xyz
+#PESfile=../../examples/input.BrCH5.psi4
+PESfile=../../examples/schnet.BrCH5.best_model
 
-#xyzfile../../examples/input.ch.h2s.xyz
-#PESfile../../examples/sgdml.ch.h2s.npz
-#PESfile../../examples/schnet.ch.h2s.best_model
+#xyzfile=../../examples/input.ch.h2s.xyz
+#PESfile=../../examples/sgdml.ch.h2s.npz
+#PESfile=../../examples/schnet.ch.h2s.best_model
 
 echo "START: "$(date)
 
