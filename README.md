@@ -15,6 +15,13 @@ conda create -n bisamplepsi4ase psi4 ase
 conda activate bisamplepsi4ase                                                                                   
 ```
 
+For the sGDML interface, we suggest creating a python virtual environment with the sgdml package and activating it like so:
+```
+python -m venv .bisamplesgdml
+source .bisamplesgdml/bin/activate
+pip install sgdml==1.0.2 ase
+```
+
 For the Schnet interface, we suggest creating a python virtual environment with the schnetpack package and activating it like so:
 ```
 python -m venv .bisampleschnet
@@ -35,7 +42,7 @@ For the NWChemEx interface, there is quite a lot of work involved in building th
 
 ## Try it out yourself!
 
-To do an example initial sampling with molecular dynamics using a psi4 potential energy surface, try one of the exampler reactions below:
+To do an example initial sampling with molecular dynamics using a psi4 potential energy surface, try one of the example reactions below:
 
 ###  Br + CH<sub>5</sub><sup>+</sup>  ⟶
 
@@ -58,8 +65,21 @@ mkdir test3/; cd test3/
 python -u ../cli.py ../examples/input.h2br.ch3.xyz ../examples/input.BrCH5.psi4 . --atomsInFirstGroup "1 2 4" --collisionEnergy 5.0 --impactParameter 1.0 --centerOfMassDistance 10.0 --production 1000 --interval 1 --time_step 0.15 --INITQPa "thermal" --INITQPb "thermal" --TVIBa 298.15 --TROTa 298.15 --TVIBb 298.15 --TROTb 298.15 > asepsi4md0.out
 ```
 
+To do an example initial sampling with molecular dynamics using an ML potential energy surface, try the example reaction below:
 
-Command line arguments can be explained with "cli.py --help". In general, three positional arguments are always required: (1) the combined XYZ file of both reactants, (2) the potential energy surface file with a specific file ending depending on the method (".nwchemex",".gamess.qcengine",".psi4", and ".npz" correspond to the NWChemEx, QCEngine/GAMESS, psi4, and sGDML interfaces, respectively), and (3) the directory to place output files like the trajectory. 
+###  CH + H<sub>2</sub>S  ⟶
+```
+mkdir test4/; cd test4/
+python -u ../cli.py ../examples/input.ch.h2s.xyz ../examples/schnet.ch.h2s.best_model . --atomsInFirstGroup "1 2" --collisionEnergy 5.0 --impactParameter 1.0 --centerOfMassDistance 10.0 --production 1000 --interval 1 --time_step 0.15 --INITQPa "thermal" --INITQPb "thermal" --TVIBa 298.15 --TROTa 298.15 --TVIBb 298.15 --TROTb 298.15 > asepsi4md0.out
+````
+
+```
+mkdir test5/; cd test5/
+python -u ../cli.py ../examples/input.ch.h2s.xyz ../examples/sgdml.ch.h2s.npz . --atomsInFirstGroup "1 2" --collisionEnergy 5.0 --impactParameter 1.0 --centerOfMassDistance 10.0 --production 1000 --interval 1 --time_step 0.15 --INITQPa "thermal" --INITQPb "thermal" --TVIBa 298.15 --TROTa 298.15 --TVIBb 298.15 --TROTb 298.15 > asepsi4md0.out
+````
+
+
+Command line arguments can be explained with "cli.py --help". In general, three positional arguments are always required: (1) the combined XYZ file of both reactants, (2) the potential energy surface file with a specific file ending depending on the method (".nwchemex",".gamess.qcengine",".psi4", ".npz", and "best_model" correspond to the NWChemEx, QCEngine/GAMESS, psi4, sGDML, and Schnet interfaces, respectively), and (3) the directory to place output files like the trajectory. 
 
 
 
