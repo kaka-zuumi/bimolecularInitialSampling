@@ -37,8 +37,11 @@ n_threads=$SLURM_CPUS_PER_TASK
 # https://psicode.org/psi4manual/master/basissets_tables.html
 
 xyzfile=../../examples/input.hbr.ch4.xyz
-PESfile=../../input.BrCH5.psi4
-#PESfile=/home/kazuumi/rsun_koastore/kazuumiTest1/MLexp1/globalPES/PES-ntrain14000-try1/sig15.npz
+PESfile=../../examples/input.br.ch5.xyz
+
+#xyzfile../../examples/input.ch.h2s.xyz
+#PESfile../../examples/sgdml.ch.h2s.npz
+#PESfile../../examples/schnet.ch.h2s.best_model
 
 echo "START: "$(date)
 
