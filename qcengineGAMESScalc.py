@@ -165,24 +165,16 @@ class qcengineGAMESScalculator(Calculator):
 #                   print("SCF convergence (0) ... will now use a SAD guess")
 #                   self.ref_wfn = None
 
-        if (self.ref_wfn is None):
-            inp = qcel.models.AtomicInput(molecule=mol, driver="energy", model=self.model, keywords=self.keywords)
-            e_results = qcng.compute(inp, 'gamess', task_config=self.MPIconfig)
-
-        else:
-            inp = qcel.models.AtomicInput(molecule=mol, driver="energy", model=self.model, keywords=self.keywords)
+        inp = qcel.models.AtomicInput(molecule=mol, driver="gradient", model=self.model, keywords=self.keywords)
+        if (self.ref_wfn is not None):
             inp.extras["VECguess"] =  self.ref_wfn
             inp.extras["VECnorb"]  =  self.Norb
-            e_results = qcng.compute(inp, 'gamess', task_config=self.MPIconfig)
 
-        inp = qcel.models.AtomicInput(molecule=mol, driver="gradient", model=self.model, keywords=self.keywords)
-        self.ref_wfn     =  e_results.extras["VEC"] 
-        self.Norb =  e_results.extras["VECnorb"] 
-        inp.extras["VECguess"] =  self.ref_wfn
-        inp.extras["VECnorb"]  =  self.Norb 
         f_results = qcng.compute(inp, 'gamess', task_config=self.MPIconfig)
+        self.ref_wfn  = f_results.extras["VEC"] 
+        self.Norb     = f_results.extras["VECnorb"] 
 
-        e = e_results.return_result
+        e = float(f_results.extras["qcvars"]["CURRENT ENERGY"])
         f = f_results.return_result
 
 #       f = -np.array(f)
@@ -200,8 +192,6 @@ class qcengineGAMESScalculator(Calculator):
         # Convert model units to ASE default units (eV and Ang)
         e *= self.E_to_eV
         f *= -self.F_to_eV_Ang
-
-        print("f:", f)
 
         f = f.reshape(-1, 3)
         Natoms = len(atoms)

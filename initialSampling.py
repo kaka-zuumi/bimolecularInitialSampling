@@ -69,11 +69,18 @@ class initialSampling:
     # Separate the two molecules
     def separateMolecules(self):
         masses = self.mol.get_masses()
-        mass1 = sum([masses[i] for i in self.atomsInFirstGroup])
-        mass2 = sum([masses[i] for i in self.atomsInSecondGroup])
         q = self.mol.get_positions()
-        r1 = sum([masses[i]*q[i] for i in self.atomsInFirstGroup]) / mass1
-        r2 = sum([masses[i]*q[i] for i in self.atomsInSecondGroup]) / mass2
+        if (len(self.atomsInFirstGroup) > 0):
+            mass1 = sum([masses[i] for i in self.atomsInFirstGroup])
+            r1 = sum([masses[i]*q[i] for i in self.atomsInFirstGroup]) / mass1
+        else:
+            r1 = np.array([0.0, 0.0, 0.0])
+        if (len(self.atomsInSecondGroup) > 0):
+            mass2 = sum([masses[i] for i in self.atomsInSecondGroup])
+            r2 = sum([masses[i]*q[i] for i in self.atomsInSecondGroup]) / mass2
+        else:
+            r2 = np.array([0.0, 0.0, 0.0])
+
         for i in range(self.Natoms):
             if i in self.atomsInFirstGroup:
                 q[i] -= r1
@@ -897,12 +904,13 @@ class initialSampling:
     
             # Optimize the two molecules with ASE
             optimizer = QuasiNewton(
-                self.mol,maxstep=0.0250,    # original value = 0.010,
+                self.mol,maxstep=0.0100,    # original NWChemEx value = 0.0250,
                 trajectory=self.optimization_file,
             )
 
             # The convergence threshold is in the default units (eV and Ang)
-            optimizer.run(5.0e-3, 10000)
+#           optimizer.run(1.0e-3, 10000)     # original value = 5.0e-3
+            optimizer.run(4.0e-3, 10000) 
     
         ###############################################################################
     
@@ -918,6 +926,11 @@ class initialSampling:
                 print("##############################################################")
                 print("Initializing reactant group ", Nreactant)
                 print("   with atomic indexes:", reactantIndexes)
+
+            if (len(reactantIndexes) == 0):
+                print("No atoms in reactant group ", Nreactant)
+                print("Must be unimolecular! Skipping sampling for this group...")
+                continue
     
             # You must center the molecule first before calculating
             # its moment of inertia tensor
@@ -960,6 +973,16 @@ class initialSampling:
             else:
                 nonzeroEs = np.real(Es[6:]) * self.freq2energy
                 nonzeroModes = modes[6:]
+
+            if (any(nonzeroEs < 0)):
+                print("WARNING: one of the 'nonzero' modes has a negative frequency...")
+                print("         for initial sampling, will convert to a positive number")
+                nonzeroEs = np.abs(nonzeroEs)
+
+            if (any(nonzeroEs <= 0.001*self.freq2energy)):
+                print("WARNING: one of the 'nonzero' modes has a close to zero  frequency...")
+                print("         for initial sampling, will convert to a small nonzero number (0.001 cm-1)")
+                nonzeroEs[nonzeroEs <= 0.001*self.freq2energy] = 0.001 * self.freq2energy
     
             ###############################################################################################
     

@@ -94,6 +94,14 @@ class psi4calculator(Calculator):
         psi4.set_options({'dft_radial_points': self.dft_radial_points})
 #       psi4.set_options({'DFT_RADIAL_POINTS': self.dft_radial_points})
         psi4.set_options({'df_ints_io': self.df_ints_io})
+
+        # Some alternate psi4 SCF convergence options for second-order SCF (SOSCF):
+        if (True):
+            psi4.set_options({'soscf': True})
+            psi4.set_options({'soscf_max_iter': self.maxiter})
+            psi4.set_options({'soscf_conv': self.d_convergence})
+            psi4.set_options({'soscf_start_convergence': 1.0e-6})
+
         self.movecs = self.scratchdir+"/md.wfn"
         self.ref_wfn = None
 

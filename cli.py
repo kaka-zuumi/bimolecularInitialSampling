@@ -57,6 +57,7 @@ parser.add_argument("--atomsInFirstGroup", type=str, help="String with atoms whi
 parser.add_argument("--collisionEnergy", type=float, help="Collision energy in kcal/mol")
 parser.add_argument("--impactParameter", type=float, help="Impact parameter in Angstrom")
 parser.add_argument("--centerOfMassDistance", type=float, help="Distance between the two molecules' centers of mass in Angstrom")
+parser.add_argument('--optimize', action=argparse.BooleanOptionalAction, default=True)
 parser.add_argument("--production", type=int, help="Supply number of steps for a production run")
 parser.add_argument("--interval", type=int, help="How often to print out the energy")
 parser.add_argument("--time_step", type=float, help="The time step in fs for a production run")
@@ -101,6 +102,8 @@ isotopeMassesFile = args["isotopeMassesFile"]
 Nsteps = args["production"]
 Nprint = args["interval"]
 dt = args["time_step"]
+
+optimize_flag = args["optimize"]
 
 if ((Nsteps is None) or (Nprint is None) or (dt is None)):
   raise ValueError("For MD, need to specify these three: --production --interval --time_step")
@@ -183,7 +186,7 @@ if (try_qcenginegamess):
 
 if (try_nwchemex):
   print("Reading input file '"+input_path+"' as a NWChemEx input file...")
-  calc = nwchemexcalculator(input_path,n_threads=n_threads)
+  calc = nwchemexcalculator(input_path,output_path=output_path,n_threads=n_threads)
 
   # To conform to VENUS, we are going to keep the units
   # in kcal/mol and Angstroms (which the model was
@@ -222,18 +225,28 @@ if not (Pfile is None):
   v = [p[i]/masses[i] for i in range(len(p))]
   mol.set_velocities(v)
 
-# If there is no momenta file, then try and make momenta
-# by assuming a bimolecular reaction
+# If there is no momenta file, then do initial sampling
 else:
-    if ((atomsInFirstGroup is None) or (ce is None) or (b is None) or (dCM is None)):
-      raise ValueError("No initial momenta conditions or file are provided")
+
+    Natoms = len(mol)
+
+    # If no atoms are specified to be in the first group,
+    # assume that this is a unimolecular sampling
+    if (atomsInFirstGroup is None):
+      atomsInFirstGroup = range(Natoms)
 
     atomsInFirstGroup = [int(i)-1 for i in atomsInFirstGroup.split()]
 
-    Natoms = len(mol)
     atomsInSecondGroup = []
     for i in range(Natoms):
       if (i not in atomsInFirstGroup): atomsInSecondGroup.append(i)
+
+    if ((len(atomsInFirstGroup) > 0) and (len(atomsInSecondGroup) > 0)):
+      bimolecular_flag = True
+      if ((ce is None) or (b is None) or (dCM is None)):
+        raise ValueError("Lacking an argument for bimolecular sampling (collision energy, impact parameter, of center of mass distance)")
+    else:
+      bimolecular_flag = False
 
     print("")
     print("GEOMETRY INPUT")
@@ -243,6 +256,7 @@ else:
     print("SAMPLING INPUT")
     print("  Input momenta file: ", Pfile)
     if (Pfile is None):
+      print("          Optimize molecules? ", optimize_flag)
       print("     Group A sampling method: ", samplingMethod[0])
       print("     Group A       vibration: ", vibrationSampling[0])
       print("     Group A        rotation: ", rotationSampling[0])
@@ -260,7 +274,7 @@ else:
 
     # Sample the internal positions and momenta of each of
     # the two molecules
-    sampler = initialSampling(mol,atomsInFirstGroup,optimize=True,
+    sampler = initialSampling(mol,atomsInFirstGroup,optimize=optimize_flag,
                       optimization_file=os.path.join(output_path, "optimization.traj"),
                       samplingMethodA=samplingMethod[0],vibrationalSampleA=vibrationSampling[0],rotationalSampleA=rotationSampling[0],
                       samplingMethodB=samplingMethod[1],vibrationalSampleB=vibrationSampling[1],rotationalSampleB=rotationSampling[1])
@@ -268,8 +282,9 @@ else:
     print("Sampling internal degrees of freedom...")
     sampler.sampleRelativeQP()
 
-    print("Sampling relative degrees of freedom...")
-    sampler.sampleAbsoluteQP(ce,dCM=dCM,b=b)
+    if (bimolecular_flag):
+        print("Sampling relative degrees of freedom...")
+        sampler.sampleAbsoluteQP(ce,dCM=dCM,b=b)
 
 ########################################################################################
 
@@ -292,6 +307,12 @@ def checkGeneralReactionProgress(a):
           break
 
     return stop_flag
+
+# If movecs, Q, and P restarting is available, start it now:
+if try_nwchemex:
+    if (calc.save_movecs_interval):
+#       calc.save_movecs_count = calc.save_movecs_interval   # Save once at the start
+        calc.save_movecs_count = 0                           # Save only once every "save_movecs_interval"
 
 # Now run the dynamics
 printenergy(mol)
