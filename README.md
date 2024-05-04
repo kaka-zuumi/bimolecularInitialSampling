@@ -67,12 +67,12 @@ sbatch examples/SLURM/doSingleTrajectory.slurm 1.0
 
 Simulations making use of a QCEngine/GAMESS potential energy surface require both loading the python package, as well as specifying PATHs in the environment (with an "export" statement in bash) for the GAMESS executable, as well as changing PATHs in the "rungms.MPI" executable so as to use an appropriate scratch directory (in this case, the current directory "."). An exaple trajectory can be submitted with "examples/SLURM/doQCEngineGAMESSSingleTrajectory.slurm" using a varying impact parameter, here 1.0, with:
 ```
-sbatch examples/SLURM/doSingleTrajectory.slurm 1.0
+sbatch examples/SLURM/doQCEngineGAMESSSingleTrajectory.slurm 1.0
 ```
 
 Simulations making use of a NWChemEx potential energy surface require the loading the python package used in the build script "build_nwx.slurm" as well as loading all relevant modules and PATHs as used in the build script. Additional paths must be specified for the new install and module directories made during the build. An example trajectory can be submitted with "examples/SLURM/doNWChemExSingleTrajectory.slurm" using a varying impact parameter, here 1.0, with:
 ```
-sbatch examples/SLURM/doSingleTrajectory.slurm 1.0
+sbatch examples/SLURM/doNWChemExSingleTrajectory.slurm 1.0
 ```
 
 
