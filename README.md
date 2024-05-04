@@ -15,6 +15,14 @@ conda create -n bisamplepsi4ase psi4 ase
 conda activate bisamplepsi4ase                                                                                   
 ```
 
+For the Schnet interface, we suggest creating a python virtual environment with the schnetpack package and activating it like so:
+```
+python -m venv .bisampleschnet
+source .bisampleschnet/bin/activate
+pip install schnetpack==1.0
+```
+
+
 For the QCEngine/GAMESS interface (which requires GAMESS pre-installed), we suggest creating a python virtual environment with four packages and activating it like so:
 ```
 python -m venv .bisampleqcenginegamess
